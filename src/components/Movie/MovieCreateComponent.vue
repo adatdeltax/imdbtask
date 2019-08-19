@@ -220,51 +220,37 @@ export default {
     //form submit
     submited() {
       this.submitedform = true;
-      let data = this.movieData;
       // checks if the id is equal to initial value
-      if (this.moviedata.id == 0) {
+      if (this.movieData.id == 0) {
         axios
-          .post("http://195.201.189.119:63790/movies", this.moviedata)
+          .post("http://195.201.189.119:63790/movies", this.movieData)
           .then(res => {
             console.log(res.status);
-
+            this.showAlert("success", "Data Recorded Successfully");
             this.clearform();
           })
           .catch(error => {
             console.log(error);
-            this.callDangerAlert();
+            this.showAlert("danger", "Something went wrong");
           });
-        this.callSuccessAlert();
       }
       //if not then it will update the data
       else {
         axios
           .put(
-            `http://195.201.189.119:63790/movies/` + this.moviedata.id,
-            this.moviedata
+            `http://195.201.189.119:63790/movies/` + this.movieData.id,
+            this.movieData
           )
           .then(res => {
             console.log(res.status);
             this.clearform();
+            this.showAlert("success", "Data Recorded Successfully");
           })
           .catch(error => {
             console.log(error);
-            this.callDangerAlert();
+            this.showAlert("danger", "Something went wrong");
           });
-        this.callSuccessAlert();
       }
-    },
-
-    //methods for alerts
-    callSuccessAlert() {
-      this.childAlert.variant = "success";
-      this.childAlert.message = "Data Recorded Successfully!!";
-      this.$emit("alertFromChild", this.childAlert);
-    },
-    callDangerAlert() {
-      this.childAlert.variant = "danger";
-      this.childAlert.message = "Something Went Wrong!!";
-      this.$emit("alertFromChild", this.childAlert);
     },
 
     // method to close producer modal from child button
@@ -278,7 +264,7 @@ export default {
     async closeActorModal() {
       this.actorModalShow = false;
       // reloads actor multiselect
-       await this.loadActorMultiselect();
+      await this.loadActorMultiselect();
     },
 
     //Loads actor multiselect
@@ -305,8 +291,10 @@ export default {
     },
     async loadProducerMultiselect() {
       //gets all producers names from producers json and formats it as {id:,name:}
-        try {
-        let response = await axios.get("http://195.201.189.119:63790/producers");
+      try {
+        let response = await axios.get(
+          "http://195.201.189.119:63790/producers"
+        );
         let data = response.data;
         let producerNamesOption = [];
         for (let row in data) {

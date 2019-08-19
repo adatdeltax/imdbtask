@@ -96,7 +96,7 @@ export default {
       if (this.childtype == "Actor") {
         try {
           //adds new actor to actors
-          let response = axios.post(
+          let response = await axios.post(
             "http://195.201.189.119:63790/actors",
             this.personData
           );
@@ -114,7 +114,7 @@ export default {
       } else if (this.childtype == "Producer") {
         try {
           //adds producer to producers
-          let response = axios.post(
+          let response = await axios.post(
             "http://195.201.189.119:63790/producers",
             this.personData
           );
