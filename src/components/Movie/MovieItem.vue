@@ -27,14 +27,14 @@
             <i
               v-for="actor in movie.actors"
               :key="actor.id"
-            >{{ (actor.name)?actor.name:actor }}</i>
+            >{{ (actor.name)?actor.name+",":actor+"," }}</i>
           </p>
           <p class="card-text">
             <b>Producers:</b>&nbsp;&nbsp;&nbsp;
             <i
               v-for="producer in movie.producers"
               :key="producer.id"
-            >{{ (producer.name)?producer.name+",":producer }}</i>
+            >{{ (producer.name)?producer.name+",":producer+"," }}</i>
           </p>
           <div class="d-flex justify-content-between align-items-center">
             <div class="btn-group">
