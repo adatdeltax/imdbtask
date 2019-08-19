@@ -5,9 +5,14 @@
       type="dark"
       variant="dark"
     >
-       <b-navbar-brand href="#">
-      <img src="https://i.ibb.co/FqBptW6/logo.png" height="40" width="90" alt="Kitten">
-    </b-navbar-brand>
+      <b-navbar-brand href="#">
+        <img
+          src="https://i.ibb.co/FqBptW6/logo.png"
+          height="40"
+          width="90"
+          alt="Kitten"
+        >
+      </b-navbar-brand>
 
       <b-navbar-toggle target="nav-collapse" />
 

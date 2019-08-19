@@ -1,8 +1,17 @@
 <template>
   <div class="row">
-    <div v-for="movie in moviesdata" :key="movie.id" class="col-md-4">
-      <div class="card mb-4 shadow-sm"  >
-        <img class="card-img-top" height="320px" width="20px" :src="movie.poster">
+    <div
+      v-for="movie in moviesdata"
+      :key="movie.id"
+      class="col-md-4"
+    >
+      <div class="card mb-4 shadow-sm">
+        <img
+          class="card-img-top"
+          height="320px"
+          width="20px"
+          :src="movie.poster"
+        >
         <div class="card-body">
           <p class="card-text">
             <b>Movie:</b>
@@ -33,7 +42,9 @@
                 tag="button"
                 class="btn btn-sm btn-outline-secondary"
                 :to="{ name:'movieedit', params:{id:movie.id} }"
-              >Edit</router-link>
+              >
+                Edit
+              </router-link>
             </div>
             <small class="text-muted">Year of release : {{ movie.yearOfRelease }}</small>
           </div>

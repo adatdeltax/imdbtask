@@ -23,7 +23,6 @@
         <app-person-create
           @closeActorModal="closeActorModal"
           childtype="Actor"
-          :reloadActorMultiSelectAfterUpdate="actorNameDataFromJson"
           @alertFromChild="showAlert"
         />
       </b-modal>
@@ -194,7 +193,6 @@ export default {
   },
   created() {
     //data for the edit part
-    console.log("Created");
     if (this.$route.params.id) {
       axios
         .get(`http://195.201.189.119:63790/movies/` + this.$route.params.id)
@@ -255,35 +253,32 @@ export default {
           });
         this.callSuccessAlert();
       }
-      console.log(data, "Final form submitted data");
     },
 
     //methods for alerts
     callSuccessAlert() {
-      console.log("I am here success");
       this.childAlert.variant = "success";
       this.childAlert.message = "Data Recorded Successfully!!";
       this.$emit("alertFromChild", this.childAlert);
-      console.log();
     },
     callDangerAlert() {
       this.childAlert.variant = "danger";
       this.childAlert.message = "Something Went Wrong!!";
       this.$emit("alertFromChild", this.childAlert);
     },
-    // method to close producer modal from child button
-    closeProducerModal() {
-      this.producerModalShow = false;
 
+    // method to close producer modal from child button
+    async closeProducerModal() {
+      this.producerModalShow = false;
       //reloads producer multiselect
-      this.loadProducerMultiselect();
+      await this.loadProducerMultiselect();
     },
 
     // method to close actor modal from child button
-    closeActorModal() {
+    async closeActorModal() {
       this.actorModalShow = false;
       // reloads actor multiselect
-      this.loadActorMultiselect();
+       await this.loadActorMultiselect();
     },
 
     //Loads actor multiselect
@@ -326,6 +321,19 @@ export default {
       } catch (error) {
         console.log(error);
       }
+      axios.get("http://195.201.189.119:63790/producers").then(res => {
+        let data = res.data;
+        let producerNamesOption = [];
+        for (let row in data) {
+          if ((data[row].id && data[row].name) || data[row].personname) {
+            producerNamesOption.push({
+              id: data[row].id,
+              name: data[row].name || data[row].personname
+            });
+          }
+        }
+        this.producerNameDataFromJson = producerNamesOption;
+      });
     },
     //setting countdown variables
     countDownChanged(dismissCountDown) {

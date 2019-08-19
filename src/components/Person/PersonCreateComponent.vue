@@ -4,29 +4,29 @@
       <div class="row">
         <div class="col-xs-12 col-sm-12">
           <div class="form-group">
-            <label for="personname">{{childtype}} Name:</label>
+            <label for="personname">{{ childtype }} Name:</label>
             <input
               id="personname"
               v-model="personData.personname"
+              v-validate="'required'"
               type="text"
               name="personname"
               class="form-control"
-              v-validate="'required|alpha'"
-            >
-            <span class="error" v-show="errors.has('personname')">{{ errors.first('personname') }}</span>
+            />
+            <span v-show="errors.has('personname')" class="error">{{ errors.first('personname') }}</span>
           </div>
 
           <div class="form-group">
-            <label for="bio">{{childtype}}'s gender: &nbsp;</label>
+            <label for="bio">{{ childtype }}'s gender: &nbsp;</label>
             <label for="male">
               <input
                 id="male"
                 v-model="personData.sex"
-                name="genderradiogroup"
                 v-validate="'required|included:Male,Female'"
+                name="genderradiogroup"
                 type="radio"
                 value="Male"
-              > Male
+              /> Male
             </label>
             &nbsp; &nbsp; &nbsp;
             <label for="female">
@@ -36,28 +36,28 @@
                 name="genderradiogroup"
                 type="radio"
                 value="Female"
-              > Female
+              /> Female
             </label>
-            <br>
+            <br />
             <span
-              class="error"
               v-show="errors.has('genderradiogroup')"
+              class="error"
             >{{ errors.first('genderradiogroup') }}</span>
           </div>
 
           <div class="form-group">
-            <label for="bio">{{childtype}}'s bio:</label>
-            <br>
+            <label for="bio">{{ childtype }}'s bio:</label>
+            <br />
 
             <textarea
               id="bio"
-              name="bio"
-              v-validate="'required|alpha'"
               v-model="personData.bio"
+              v-validate="'required'"
+              name="bio"
               rows="5"
               class="form-control"
             />
-            <span class="error" v-show="errors.has('bio')">{{ errors.first('bio') }}</span>
+            <span v-show="errors.has('bio')" class="error">{{ errors.first('bio') }}</span>
           </div>
 
           <div class="form-group">
@@ -73,76 +73,65 @@
 <script>
 import axios from "axios";
 export default {
+  props: { childtype: { type: String } },
   data: function() {
     return {
+      //Normal person data
       personData: {
         personname: "",
         sex: "",
         bio: ""
       },
+      //alert data
       childAlert: {
         variant: "",
         message: ""
-      },
-      newActorNames:[],
-      reloadActorMultiSelectAfterUpdate:Function,
+      }
     };
   },
-
-  props: ["childtype"],
   methods: {
     //method used to get all fields that are entered in person modal
-     personsubmited() {
+    async personsubmited() {
+      //checks which modal(Actor/Producer) is selected and stores accordingly
       if (this.childtype == "Actor") {
-        console.log(this.childtype);
+        try {
+          //adds new actor to actors
+          let response = axios.post(
+            "http://195.201.189.119:63790/actors",
+            this.personData
+          );
 
-         axios
-          .post("http://195.201.189.119:63790/actors", this.personData)
-          .then(res => {
-            console.log(res.status);
-          })
-          .catch(error => {
-            console.log(error);
-            this.callDangerAlert();
-          });
-
-
-          axios
-          .get("http://195.201.189.119:63790/actors").then(response=>{
-            console.log(response.data)
-             let data = response.data;
-        let producerNamesOption = [];
-        for (let row in data) {
-          if ((data[row].id && data[row].name) || data[row].personname) {
-            producerNamesOption.push({
-              id: data[row].id,
-              name: data[row].name || data[row].personname
-            });
-          }
+          //calls success alert
+          this.callSuccessAlert();
+          //calls closeActorModal in parent
+          this.$emit("closeActorModal");
+        } catch (error) {
+          //displays error
+          console.log(error);
+          //calls danger alert
+          this.callDangerAlert();
         }
-        this.newActorNames = producerNamesOption;
-
-
-          });
-        //  this.reloadActorMultiSelectAfterUpdate();
-        this.callSuccessAlert();
       } else if (this.childtype == "Producer") {
-        console.log(this.childtype);
-        axios
-          .post("http://195.201.189.119:63790/producers", this.personData)
-          .then(res => {
-            console.log(res.status);
-          })
-          .catch(error => {
-            console.log(error);
-            this.callDangerAlert();
-          });
-        this.callSuccessAlert();
+        try {
+          //adds producer to producers
+          let response = axios.post(
+            "http://195.201.189.119:63790/producers",
+            this.personData
+          );
+          //calls success alert
+          this.callSuccessAlert();
+          //calls closeProducerModal in parent
+          this.$emit("closeProducerModal");
+        } catch (error) {
+          //displays error
+          console.log(error);
+          //calls danger alert
+          this.callDangerAlert();
+        }
       }
-
-      this.$emit("close" + this.childtype + "Modal",this.personData);
-      
     },
+
+    //checks for the required condition
     validateBeforeSubmit() {
       this.$validator.validateAll().then(result => {
         if (result) {
@@ -152,18 +141,19 @@ export default {
         alert("Please enter all the details!");
       });
     },
+    //calls the success alert
     callSuccessAlert() {
-      console.log("I am here success");
       this.childAlert.variant = "success";
       this.childAlert.message = "Data Recorded Successfully!!";
       this.$emit("alertFromChild", this.childAlert);
-      console.log();
     },
+    //calls the danger alert
     callDangerAlert() {
       this.childAlert.variant = "danger";
       this.childAlert.message = "Something Went Wrong!!";
       this.$emit("alertFromChild", this.childAlert);
     },
+    //calls Actor/Produce closemodal method whenever cancel button is pressed
     closepersonmodal() {
       this.$emit("close" + this.childtype + "Modal");
     }

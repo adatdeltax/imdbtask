@@ -3,10 +3,16 @@
     <br>
     <div class="album py-5 bg-light">
       <div class="container">
-        <router-link to="/movies/create" tag="button" class="btn btn-info">Create Movie</router-link>
+        <router-link
+          to="/movies/create"
+          tag="button"
+          class="btn btn-info"
+        >
+          Create Movie
+        </router-link>
         <br>
         <br>
-        <app-movie-item></app-movie-item>
+        <app-movie-item />
       </div>
     </div>
   </div>
