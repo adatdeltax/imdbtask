@@ -32,6 +32,4 @@
     </b-navbar>
   </div>
 </template>
-<script>
 
-</script>

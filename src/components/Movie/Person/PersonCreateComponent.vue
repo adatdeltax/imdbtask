@@ -4,16 +4,16 @@
       <div class="row">
         <div class="col-xs-12 col-sm-12">
           <div class="form-group">
-            <label for="personname">{{ childtype }} Name:</label>
+            <label for="personName">{{ childtype }} Name:</label>
             <input
-              id="personname"
-              v-model="personData.personname"
+              id="personName"
+              v-model="personData.personName"
               v-validate="'required'"
               type="text"
-              name="personname"
+              name="personName"
               class="form-control"
             />
-            <span v-show="errors.has('personname')" class="error">{{ errors.first('personname') }}</span>
+            <span v-show="errors.has('personName')" class="error">{{ errors.first('personName') }}</span>
           </div>
 
           <div class="form-group">
@@ -62,7 +62,7 @@
 
           <div class="form-group">
             <b-button variant="success" class="childbutton" @click="validateBeforeSubmit">Submit</b-button>
-            <b-button variant="danger" class="childbutton" @click="closepersonmodal">Cancel</b-button>
+            <b-button variant="danger" class="childbutton" @click="closePersonModal">Cancel</b-button>
           </div>
         </div>
       </div>
@@ -71,19 +71,19 @@
 </template>
 
 <script>
-import axios from "axios";
+import apiService from "../services/apiService";
 export default {
   props: { childtype: { type: String } },
   data: function() {
     return {
       //Normal person data
       personData: {
-        personname: "",
+        personName: "",
         sex: "",
         bio: ""
       },
       //alert data
-      childAlert: {
+      alert: {
         variant: "",
         message: ""
       }
@@ -91,40 +91,35 @@ export default {
   },
   methods: {
     //method used to get all fields that are entered in person modal
-    async personsubmited() {
+    async personSubmited() {
       //checks which modal(Actor/Producer) is selected and stores accordingly
       if (this.childtype == "Actor") {
-        try {
-          //adds new actor to actors
-          let response = await axios.post(
-            "http://195.201.189.119:63790/actors",
-            this.personData
-          );
-
+        let response = await apiService.submitActor(this.personData);
+        if (response == 201) {
           //calls success alert
           this.callSuccessAlert();
           //calls closeActorModal in parent
           this.$emit("closeActorModal");
-        } catch (error) {
+        } else {
           //displays error
-          console.log(error);
+          alert(
+            '"Sorry. We are unable to fetch the data required. Please try again. If the problem persists contact support'
+          );
           //calls danger alert
           this.callDangerAlert();
         }
       } else if (this.childtype == "Producer") {
-        try {
-          //adds producer to producers
-          let response = await axios.post(
-            "http://195.201.189.119:63790/producers",
-            this.personData
-          );
+        let response = await apiService.submitProducer(this.personData);
+        if (response == 201) {
           //calls success alert
           this.callSuccessAlert();
-          //calls closeProducerModal in parent
+          //calls closeActorModal in parent
           this.$emit("closeProducerModal");
-        } catch (error) {
+        } else {
           //displays error
-          console.log(error);
+          alert(
+            '"Sorry. We are unable to fetch the data required. Please try again. If the problem persists contact support'
+          );
           //calls danger alert
           this.callDangerAlert();
         }
@@ -135,7 +130,7 @@ export default {
     validateBeforeSubmit() {
       this.$validator.validateAll().then(result => {
         if (result) {
-          this.personsubmited();
+          this.personSubmited();
           return;
         }
         alert("Please enter all the details!");
@@ -143,18 +138,18 @@ export default {
     },
     //calls the success alert
     callSuccessAlert() {
-      this.childAlert.variant = "success";
-      this.childAlert.message = "Data Recorded Successfully!!";
-      this.$emit("alertFromChild", this.childAlert);
+      this.alert.variant = "success";
+      this.alert.message = "Data Recorded Successfully!!";
+      this.$emit("alertFromChild", this.alert);
     },
     //calls the danger alert
     callDangerAlert() {
-      this.childAlert.variant = "danger";
-      this.childAlert.message = "Something Went Wrong!!";
-      this.$emit("alertFromChild", this.childAlert);
+      this.alert.variant = "danger";
+      this.alert.message = "Something Went Wrong!!";
+      this.$emit("alertFromChild", this.alert);
     },
     //calls Actor/Produce closemodal method whenever cancel button is pressed
-    closepersonmodal() {
+    closePersonModal() {
       this.$emit("close" + this.childtype + "Modal");
     }
   }

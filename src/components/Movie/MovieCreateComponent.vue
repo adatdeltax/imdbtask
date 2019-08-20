@@ -13,12 +13,12 @@
     <div class="row">
       <!-- Actor modal button -->
       <b-button
-        @click="actorModalShow = !actorModalShow"
+        @click="showActorModal = !showActorModal"
         style="float:left"
         class="btn btn-info"
       >Add Actor</b-button>&nbsp;&nbsp;&nbsp;
       <!-- Actor modal -->
-      <b-modal v-model="actorModalShow" title="Add Actor" hide-footer>
+      <b-modal v-model="showActorModal" title="Add Actor" hide-footer>
         <!-- common component for actor/producer (actor) -->
         <app-person-create
           @closeActorModal="closeActorModal"
@@ -29,12 +29,12 @@
 
       <!-- Producer modal button -->
       <b-button
-        @click="producerModalShow = !producerModalShow"
+        @click="showProducerModal = !showProducerModal"
         style="float:right"
         class="btn btn-info"
       >Add Producer</b-button>&nbsp;&nbsp;&nbsp;
       <!-- Producer modal-->
-      <b-modal v-model="producerModalShow" title="Add Producer" hide-footer>
+      <b-modal v-model="showProducerModal" title="Add Producer" hide-footer>
         <!-- common component for actor/producer (producer) -->
         <app-person-create
           @closeProducerModal="closeProducerModal"
@@ -48,20 +48,20 @@
     <!-- form component -->
     <form>
       <div class="row">
-        <div class="col-xs-12 col-sm-8 col-sm-offset-2 col-md-6">
+        <div class="col-xs-12 col-sm-8 col-md-6">
           <!-- Movie name -->
           <div class="form-group">
-            <label for="moviename">Movie Name:</label>
+            <label for="movieName">Movie Name:</label>
             <input
-              id="moviename"
-              name="moviename"
+              id="movieName"
+              name="movieName"
               v-validate="'required'"
               data-vv-validate-on="validateStep"
               v-model="movieData.name"
               type="text"
               class="form-control"
             />
-            <span class="error" v-show="errors.has('moviename')">{{ errors.first('moviename') }}</span>
+            <span class="error" v-show="errors.has('movieName')">{{ errors.first('movieName') }}</span>
           </div>
           <!--Year Of Release -->
           <div class="form-group">
@@ -124,7 +124,7 @@
           <br />
           <multiselect
             v-model="movieData.actors"
-            :options="actorNameDataFromJson"
+            :options="actors"
             :multiple="true"
             label="name"
             track-by="id"
@@ -132,7 +132,6 @@
         </div>
       </div>
 
-      <hr />
       <div class="row">
         <!-- Producers -->
         <div class="col-xs-12 col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3 form-group">
@@ -140,7 +139,7 @@
 
           <multiselect
             v-model="movieData.producers"
-            :options="producerNameDataFromJson"
+            :options="producers"
             :multiple="true"
             label="name"
             track-by="id"
@@ -158,9 +157,8 @@
 </template>
 
 <script>
-import axios from "axios";
-import PersonCreate from "../Person/PersonCreateComponent";
-
+import PersonCreate from "./Person/PersonCreateComponent";
+import apiService from "./services/apiService";
 export default {
   components: {
     "app-person-create": PersonCreate
@@ -168,17 +166,17 @@ export default {
   data: function() {
     return {
       //used to reterive actor data for multiselect options
-      actorNameDataFromJson: [],
+      actors: [],
       //used to reterive producer data for multiselect options
-      producerNameDataFromJson: [],
+      producers: [],
       //objects for alerts
       dismissSecs: 5,
       dismissCountDown: 0,
       alertVariant: "",
       alertMessage: "",
       //objects used for modals
-      actorModalShow: false,
-      producerModalShow: false,
+      showActorModal: false,
+      showProducerModal: false,
       //objects used for all the inputs
       movieData: {
         id: 0,
@@ -191,18 +189,18 @@ export default {
       }
     };
   },
-  created() {
-    //data for the edit part
+
+  async created() {
     if (this.$route.params.id) {
-      axios
-        .get(`http://195.201.189.119:63790/movies/` + this.$route.params.id)
-        .then(res => {
-          this.movieData = res.data;
-        });
+      this.movieData = await apiService.getMovieDetailsFromRoute(
+        this.$route.params.id
+      );
     }
 
-    this.loadActorMultiselect();
-    this.loadProducerMultiselect();
+    //populates actors multiselect initially
+    this.actors = await apiService.getActors();
+    //populates producers multiselect initially
+    this.producers = await apiService.getProducers();
   },
 
   methods: {
@@ -218,111 +216,47 @@ export default {
     },
 
     //form submit
-    submited() {
+    async submited() {
       this.submitedform = true;
       // checks if the id is equal to initial value
       if (this.movieData.id == 0) {
-        axios
-          .post("http://195.201.189.119:63790/movies", this.movieData)
-          .then(res => {
-            console.log(res.status);
-            this.showAlert("success", "Data Recorded Successfully");
-            this.clearform();
-          })
-          .catch(error => {
-            console.log(error);
-            this.showAlert("danger", "Something went wrong");
-          });
+        let response = await apiService.submitMovie(this.movieData);
+        if (response === 201) {
+          this.showAlert("success", "Data Recorded Successfully");
+          this.clearform();
+        } else {
+          this.showAlert("danger", "Something went wrong");
+        }
       }
       //if not then it will update the data
       else {
-        axios
-          .put(
-            `http://195.201.189.119:63790/movies/` + this.movieData.id,
-            this.movieData
-          )
-          .then(res => {
-            console.log(res.status);
-            this.clearform();
-            this.showAlert("success", "Data Recorded Successfully");
-          })
-          .catch(error => {
-            console.log(error);
-            this.showAlert("danger", "Something went wrong");
-          });
+        let response = await apiService.updateMovie(
+          this.movieData.id,
+          this.movieData
+        );
+        if (response === 200) {
+          this.showAlert("success", "Data Updated Successfully");
+          this.clearform();
+        } else {
+          this.showAlert("danger", "Something went wrong");
+        }
       }
     },
 
     // method to close producer modal from child button
     async closeProducerModal() {
-      this.producerModalShow = false;
+      this.showProducerModal = false;
       //reloads producer multiselect
-      await this.loadProducerMultiselect();
+      this.producers = await apiService.getProducers();
     },
 
     // method to close actor modal from child button
     async closeActorModal() {
-      this.actorModalShow = false;
+      this.showActorModal = false;
       // reloads actor multiselect
-      await this.loadActorMultiselect();
+      this.actors = await apiService.getActors();
     },
 
-    //Loads actor multiselect
-    async loadActorMultiselect() {
-      //gets all actor names from actor json and formats it as {id:,name:}
-
-      try {
-        let response = await axios.get("http://195.201.189.119:63790/actors");
-        let data = response.data;
-        let actorNamesOption = [];
-
-        for (let i = 0; i < data.length; i++) {
-          if ((data[i].id && data[i].name) || data[i].personname) {
-            actorNamesOption.push({
-              id: data[i].id,
-              name: data[i].name || data[i].personname
-            });
-          }
-        }
-        this.actorNameDataFromJson = actorNamesOption;
-      } catch (error) {
-        console.log(error);
-      }
-    },
-    async loadProducerMultiselect() {
-      //gets all producers names from producers json and formats it as {id:,name:}
-      try {
-        let response = await axios.get(
-          "http://195.201.189.119:63790/producers"
-        );
-        let data = response.data;
-        let producerNamesOption = [];
-        for (let row in data) {
-          if ((data[row].id && data[row].name) || data[row].personname) {
-            producerNamesOption.push({
-              id: data[row].id,
-              name: data[row].name || data[row].personname
-            });
-          }
-        }
-        this.producerNameDataFromJson = producerNamesOption;
-      } catch (error) {
-        console.log(error);
-      }
-      axios.get("http://195.201.189.119:63790/producers").then(res => {
-        let data = res.data;
-        let producerNamesOption = [];
-        for (let row in data) {
-          if ((data[row].id && data[row].name) || data[row].personname) {
-            producerNamesOption.push({
-              id: data[row].id,
-              name: data[row].name || data[row].personname
-            });
-          }
-        }
-        this.producerNameDataFromJson = producerNamesOption;
-      });
-    },
     //setting countdown variables
     countDownChanged(dismissCountDown) {
       this.dismissCountDown = dismissCountDown;
